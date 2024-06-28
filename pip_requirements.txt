@@ -1,0 +1,8 @@
+autograd==1.6.2
+func_timeout==4.3.5
+future==1.0.0
+joblib==1.4.2
+numpy==1.23.4
+scikit-learn==1.5.0
+scipy==1.13.1
+threadpoolctl==3.5.0
