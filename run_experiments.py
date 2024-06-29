@@ -27,7 +27,6 @@ def set_seed(seed, verbose=False):
     np.random.seed(seed)
 
 
-dataset_paths = file_tools.sort_filepaths([f for f in file_tools.list_folders(_DATASET_DIR)])
 # method_names = ['DummyScoring_Mean', 'LinearRegression', 'Shuffle_LinearRegression', 'SVR', 'RandomForest', 'MLP']
 # training_sizes = [9234, 9000, 8000, 7000, 6000, 5000, 4000, 3000, 2000, 1000, 500, 100]
 # method_names = ['DummyScoring_Mean', 'LinearRegression', 'Shuffle_LinearRegression']
@@ -50,6 +49,7 @@ if __name__ == '__main__':
 
     thread_number = args.N
     counter = -1
+    dataset_paths = file_tools.sort_filepaths([f for f in file_tools.list_folders(_DATASET_DIR)])
     for dataset_path in dataset_paths:
             
         train_folder = os.path.join(dataset_path, 'train')
