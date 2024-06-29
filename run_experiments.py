@@ -28,10 +28,13 @@ def set_seed(seed, verbose=False):
 
 
 dataset_paths = file_tools.sort_filepaths([f for f in file_tools.list_folders(_DATASET_DIR)])
-method_names = ['DummyScoring_Mean', 'LinearRegression', 'Shuffle_LinearRegression', 'SVR', 'RandomForest', 'MLP']
+# method_names = ['DummyScoring_Mean', 'LinearRegression', 'Shuffle_LinearRegression', 'SVR', 'RandomForest', 'MLP']
 # training_sizes = [9234, 9000, 8000, 7000, 6000, 5000, 4000, 3000, 2000, 1000, 500, 100]
-training_sizes = [9234, 100]
+# method_names = ['DummyScoring_Mean', 'LinearRegression', 'Shuffle_LinearRegression']
+
 eeg_names = ['EEG_Raw', 'EEG_Net']
+method_names = ['LinearRegression']
+training_sizes = [9234, 5000]
 
 if __name__ == '__main__':
 
@@ -55,11 +58,11 @@ if __name__ == '__main__':
         test_folder = os.path.join(dataset_path, 'test')
         test_filepaths = file_tools.sort_filepaths(file_tools.list_files(test_folder, '*.npz'))
 
-        for eeg_name in eeg_names:
-            for train_filename in train_filepaths:    
-                for test_filename in test_filepaths:
-                    for training_size in training_sizes:
-                        for method_name in method_names:
+        for train_filename in train_filepaths:    
+            for test_filename in test_filepaths:
+                for training_size in training_sizes:
+                    for method_name in method_names:
+                        for eeg_name in eeg_names:
 
                             counter += 1
                             if counter != thread_number:

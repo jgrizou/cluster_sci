@@ -15,7 +15,9 @@ def eval_hyp(faces_observed, eegs_observed, face_hypothesis, scoring_function):
 
 
 def eval_all_hyp(faces_observed, eegs_observed, face_hypothesis, scoring_function):
-    return [eval_hyp(faces_observed, eegs_observed, face_hypothesis[i, :], scoring_function) for i in range(face_hypothesis.shape[0])]
+    from joblib import Parallel, delayed
+    return Parallel(n_jobs=-1)(delayed(eval_hyp)(faces_observed, eegs_observed, face_hypothesis[i, :], scoring_function) for i in range(face_hypothesis.shape[0]))
+    # return [eval_hyp(faces_observed, eegs_observed, face_hypothesis[i, :], scoring_function) for i in range(face_hypothesis.shape[0])]
 
 
 def get_relative_scores(estimator, eegs_observed, distances_hypothesis):
