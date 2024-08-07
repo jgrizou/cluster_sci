@@ -18,22 +18,38 @@ def LinRegScoring(eegs_observed, distances_hypothesis):
     estimator = make_pipeline(StandardScaler(), LinearRegression())
     return scoring_tools.get_relative_scores(estimator, eegs_observed, distances_hypothesis)
 
+def RandomForestScoring(eegs_observed, distances_hypothesis):
+    estimator = make_pipeline(StandardScaler(), RandomForestRegressor())
+    return scoring_tools.get_relative_scores(estimator, eegs_observed, distances_hypothesis)
+
 def SVRScoring(eegs_observed, distances_hypothesis):
     estimator = make_pipeline(StandardScaler(), SVR())
     return scoring_tools.get_relative_scores(estimator, eegs_observed, distances_hypothesis)
 
-def RandomForestScoring(eegs_observed, distances_hypothesis):
-    estimator = make_pipeline(StandardScaler(), RandomForestRegressor())
+def BestSVRScoring(eegs_observed, distances_hypothesis):
+    estimator = make_pipeline(StandardScaler(), SVR(C= 0.01, 
+                                                    gamma='scale', 
+                                                    kernel='linear'))
     return scoring_tools.get_relative_scores(estimator, eegs_observed, distances_hypothesis)
 
 def MLPScoring(eegs_observed, distances_hypothesis):
     estimator = make_pipeline(StandardScaler(), MLPRegressor(hidden_layer_sizes=(100, 50, 25)))
     return scoring_tools.get_relative_scores(estimator, eegs_observed, distances_hypothesis)
 
+def BestMLPScoring(eegs_observed, distances_hypothesis):
+    estimator = make_pipeline(StandardScaler(), MLPRegressor(activation='identity', 
+                                                             alpha=0.1, 
+                                                             hidden_layer_sizes=(100, 100), 
+                                                             learning_rate='adaptive'))
+    return scoring_tools.get_relative_scores(estimator, eegs_observed, distances_hypothesis)
+
+
 method_to_function_mapping = {}
 method_to_function_mapping['DummyScoring_Mean'] = DummyScoring_Mean
 method_to_function_mapping['LinearRegression'] = LinRegScoring
 method_to_function_mapping['Shuffle_LinearRegression'] = LinRegScoring
-method_to_function_mapping['SVR'] = SVRScoring
 method_to_function_mapping['RandomForest'] = RandomForestScoring
+method_to_function_mapping['SVR'] = SVRScoring
+method_to_function_mapping['BestSVR'] = BestSVRScoring
 method_to_function_mapping['MLP'] = MLPScoring
+method_to_function_mapping['BestMLP'] = BestMLPScoring

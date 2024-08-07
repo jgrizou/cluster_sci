@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Experiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        .face-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .face {
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+            max-width: 400px;
+            max-height: 400px;
+        }
+        .face:hover {
+            border-color: #007bff;
+        }
+        #nextButton {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Face Experiment</h1>
+        <p>User: <span id="username">{{ username }}</span></p>
+        <p>Experiments completed: <span id="experimentCount">{{ experiment_count }}</span> / 30</p>
+            <div id="step1">
+            <h2>Step 1: Target Face</h2>
+            <img id="targetFace" src="" alt="Target Face" class="face">
+        </div>
+        <div id="step2" style="display: none;">
+            <h2>Step 2: Choose a Face</h2>
+            <div id="choice" class="face-container">
+                <img id="leftFace" class="face" src="" alt="Left Face" onclick="chooseFace('left')">
+                <img id="rightFace" class="face" src="" alt="Right Face" onclick="chooseFace('right')">
+            </div>
+        </div>
+        <button id="nextButton" onclick="nextStep()">Start</button>
+
+        <div id="completeMessage" style="display: none;">
+            <h2>Experiment Complete</h2>
+            <p>Thank you for participating in the experiment.</p>
+            <a href="/" class="btn btn-primary">Return to Welcome Page</a>
+        </div>
+
+    </div>
+
+    <script>
+        let targetFace, leftFace, rightFace, defaultFace, showingTime, roundedD;
+        let choicesMade = false;
+        let username = "{{ username }}";
+
+        function getFaces() {
+            fetch('/get_faces')
+                .then(response => response.json())
+                .then(data => {
+                    targetFace = data.target;
+                    [leftFace, rightFace] = data.choices;
+                    defaultFace = data.default;
+                    showingTime = data.showing_time;
+                    roundedD = data.rounded_d;
+                    document.getElementById('targetFace').src = defaultFace;
+                    document.getElementById('experimentCount').textContent = data.experiment_count;
+                });
+        }
+
+        function nextStep() {
+            document.getElementById('targetFace').src = targetFace;
+            document.getElementById('nextButton').style.visibility = 'hidden';
+
+            setTimeout(() => {
+                document.getElementById('choice').style.visibility = 'hidden';
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+
+                document.getElementById('leftFace').src = leftFace;
+                document.getElementById('rightFace').src = rightFace;
+                pause();
+            }, 1500);
+        }
+
+        function pause() {
+            setTimeout(() => {
+                showChoiceFaces();
+            }, 1000);
+        }
+
+        function showChoiceFaces() {
+            document.getElementById('choice').style.visibility = 'visible';
+
+            choicesMade = false;
+
+            setTimeout(() => {
+                if (!choicesMade) {
+                    document.getElementById('leftFace').src = defaultFace;
+                    document.getElementById('rightFace').src = defaultFace;
+                }
+            }, showingTime);
+        }
+
+        function chooseFace(side) {
+            if (choicesMade) return;
+            choicesMade = true;
+
+            let chosenFace = side === 'left' ? leftFace : rightFace;
+            fetch('/save_result', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    target: targetFace,
+                    chosen: chosenFace,
+                    showing_time: showingTime,
+                    rounded_d: roundedD
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('experimentCount').textContent = data.experiment_count;
+                if (data.status === 'complete') {
+                    document.getElementById('step1').style.display = 'none';
+                    document.getElementById('step2').style.display = 'none';
+                    document.getElementById('nextButton').style.display = 'none';
+                    document.getElementById('completeMessage').style.display = 'block';
+                } else {
+                    location.reload();
+                }
+
+
+                // if (data.status === 'success') {
+                //     location.reload();
+                // }
+            });
+        }
+
+        getFaces();
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiment Complete</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Experiment Complete</h1>
+        <p>Thank you for participating in the experiment.</p>
+        <p>You have completed {{ experiment_count }} experiments.</p>
+        <p>Your results have been recorded.</p>
+        <a href="/" class="btn btn-primary">Return to Welcome Page</a>
+    </div>
+</body>
+</html>

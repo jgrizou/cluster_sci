@@ -2,3 +2,12 @@
 *.DS_Store
 *.npz
 *.json
+*.parquet
+.ipynb_checkpoints
+*.csv
+*.pkl
+*.png
+*.eps
+*.svg
+*.jpg
+*.pth
