@@ -6,14 +6,17 @@ HERE_PATH = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe
 
 # adding tools directory to path, so we can access the utils easily
 import sys
-root_path = os.path.join(HERE_PATH, '..', 'tools')
-sys.path.append(root_path)
-
+_ROOT_PATH = os.path.join(HERE_PATH, '..')
+tools_path = os.path.join(_ROOT_PATH, 'tools')
+sys.path.append(tools_path)
 
 import file_tools
 import saving_tools
 import numpy as np
 import pandas as pd
+
+from scipy.spatial import distance
+import pickle
 
 
 _CSV_DIR = os.path.join('.', 'csv_files')
@@ -139,16 +142,16 @@ if __name__ == '__main__':
     all_result_folders = filter(lambda x: os.path.basename(x).startswith("result"), file_tools.list_folders(_EXP_DIR))
 
     for result_folder in all_result_folders:
-        result_files = file_tools.list_files(result_folder, '*.json')
-        
+
         df_filename = os.path.join(_DF_DIR, "{}.parquet".format(os.path.basename(result_folder)))
         if os.path.exists(df_filename):
-            print("Skipping {}".format(result_folder))
+            print("Skipping {}".format(df_filename))
             continue
         else:
-            print("Working on {}".format(result_folder))
+            print("Working on {}".format(df_filename))
 
         df = pd.DataFrame()
+        result_files = file_tools.list_files(result_folder, '*.json')
         for i, result_filename in enumerate(result_files):
             print(f'Iteration {i+1}/{len(result_files)} for {result_folder}')  # Print the current iteration
 
@@ -157,3 +160,55 @@ if __name__ == '__main__':
 
         df.to_parquet(df_filename, engine='pyarrow')
 
+
+    all_optim_folders = filter(lambda x: os.path.basename(x).startswith("optim"), file_tools.list_folders(_EXP_DIR))
+
+    for optim_folder in all_optim_folders:
+
+        optim_df_filename = os.path.join(_DF_DIR, "{}.parquet".format(os.path.basename(optim_folder)))
+        if os.path.exists(optim_df_filename):
+            print("Skipping {}".format(optim_df_filename))
+            continue
+        else:
+            print("Working on {}".format(optim_df_filename))
+
+        optim_df = pd.DataFrame()
+        optim_files = file_tools.list_files(optim_folder, "*.json")
+        for i, optim_file in enumerate(optim_files):
+            print(f'Iteration {i+1}/{len(optim_files)} for {optim_file}')  # Print the current iteration
+
+            d = saving_tools.load_dict_from_json(optim_file)
+            df_filename = os.path.join(_ROOT_PATH, d['df_filename'])
+
+            columns_to_keep = ['method_name', 'number', 'value', 'euclidean_distance']
+
+            df = pd.read_parquet(df_filename, engine='pyarrow')
+            df['method_name'] = d['method_name']
+
+            if 'ablation_distance' in d:
+                df['ablation_distance'] = d['ablation_distance']
+                columns_to_keep.append('ablation_distance')
+            if 'run_type' in d:
+                df['run_type'] = d['run_type']
+                columns_to_keep.append('run_type')
+
+            target_data = np.load(d['target_filename'])
+            target_face = target_data['target_face']
+        
+            params_columns = ['params_x0', 'params_x1', 'params_x2', 'params_x3', 'params_x4', 
+                          'params_x5', 'params_x6', 'params_x7', 'params_x8', 'params_x9']
+            params_array = df[params_columns].to_numpy()
+        
+            pca_face_filename = os.path.join(_ROOT_PATH, d['pca_face_filename'])
+            with open(pca_face_filename, 'rb') as file:
+                pca_face = pickle.load(file)
+            tested_faces = pca_face.inverse_transform(params_array)
+            
+            euclidean_distances = np.array([distance.euclidean(target_face, row) for row in tested_faces])
+            df['euclidean_distance'] = euclidean_distances
+            
+            new_df = df[columns_to_keep]
+            
+            optim_df = pd.concat([optim_df, new_df], ignore_index=True)
+
+        optim_df.to_parquet(optim_df_filename, engine='pyarrow')
